@@ -18,6 +18,10 @@ const schema = new mongoose.Schema(
             type: String,
             required: true,
         },
+        profileImage: {
+            type: String,
+            default: ""
+        },
         rating: {
             type: Number,
             default: 0,

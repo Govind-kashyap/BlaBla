@@ -1,6 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const isAuth = require("../Middleware/isAuth")
+const upload = require("../Middleware/upload");
+const User = require("../models/user")
+
 
 const {
     login,
@@ -15,11 +18,13 @@ const {
     bookRide,
     myBookings,
     driverBookings,
-    updateBookingStatus
+    updateBookingStatus,
+    updateProfileImage
 } = require("../controller/user_controller");
 
 router.post("/login", login);
 router.post("/register", register);
+router.post("/upload-profile",isAuth,upload.single("profile"),updateProfileImage);
 
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password/:token", resetPassword);
@@ -37,10 +42,14 @@ router.put("/booking/:bookingId", isAuth, updateBookingStatus);
 
 
 
-router.get("/me", isAuth, (req, res) => {
+router.get("/me", isAuth, async (req, res) => {
+  const user = await User.findById(req.session.user.id).select(
+    "username email profileImage rating phoneNumber"
+  );
+
   res.json({
     success: true,
-    user: req.session.user
+    user
   });
 });
 

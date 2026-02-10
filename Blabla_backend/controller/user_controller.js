@@ -29,11 +29,13 @@ const login = async (req, res) => {
             email: user.email,
             phoneNumber: user.phoneNumber,
             rating: user.rating,
+            profileImage: ""
         }
 
         req.session.user = {
             id: user._id,
-            email: user.email
+            email: user.email,
+            username: user.username
         }
 
         res.status(200).json({success: "Login Successfully", user: userdata});
@@ -153,6 +155,29 @@ const resetPassword = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+const updateProfileImage = async (req, res) => {
+  try {
+    const userId = req.session.user.id;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    user.profileImage = `/uploads/${req.file.filename}`;
+    await user.save();
+
+    res.json({
+      success: true,
+      profileImage: user.profileImage,
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Upload failed" });
+  }
+};
+
 
 const AddRide = async (req, res) => {
   try {
@@ -479,5 +504,6 @@ module.exports = {
     bookRide,
     myBookings,
     updateBookingStatus,
-    driverBookings
+    driverBookings,
+    updateProfileImage
 };

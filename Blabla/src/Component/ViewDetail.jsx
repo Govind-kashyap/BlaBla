@@ -4,6 +4,7 @@ import axios from "axios";
 import { Card, Button, message, Layout, Menu } from "antd";
 const { Header, Content } = Layout;
 import logo from "../assets/logo.png";
+import { logout } from "../API/authaApi";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -48,24 +49,22 @@ const ViewDetail = () => {
     }
   };
 
+  const handleLogout = async () => {
+      try {
+          await logout();
+          navigate("/login");
+          } catch (err) {
+          console.log(err);
+          }
+      };
+
   if (!ride) return <p className="p-10">Loading...</p>;
 
     const items = [
         {
             key: "logout",
             label: "Logout",
-            onClick: async () => {
-            try {
-                await axios.post(
-                `${API_URL}/api/user/logout`,
-                {},
-                { withCredentials: true }
-                );
-                navigate("/login");
-            } catch (err) {
-                console.log("Logout error", err);
-            }
-            },
+            onClick: async () => {handleLogout()},
         },
     ];
 

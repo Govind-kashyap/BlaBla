@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Card, Empty, Layout, Menu, Button } from "antd";
 const { Header, Content } = Layout;
 import logo from "../assets/logo.png";
+import { logout } from "../API/authaApi";
 
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -21,27 +22,25 @@ function BookingDetails() {
         .catch(err => console.log(err));
     }, []);
 
+    const handleLogout = async () => {
+    try {
+        await logout();
+        navigate("/login");
+        } catch (err) {
+        console.log(err);
+        }
+    };
 
-    if (!bookings.length) {
-        return <Empty description="No bookings yet" />;
-    }
+
+    // if (!bookings.length) {
+    //     return <Empty description="No bookings yet" />;
+    // }
 
     const items = [
         {
             key: "logout",
             label: "Logout",
-            onClick: async () => {
-            try {
-                await axios.post(
-                `${API_URL}/api/user/logout`,
-                {},
-                { withCredentials: true }
-                );
-                navigate("/login");
-            } catch (err) {
-                console.log("Logout error", err);
-            }
-            },
+            onClick: async () => {handleLogout()},
         },
     ];
 

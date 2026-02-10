@@ -4,6 +4,7 @@ import { Breadcrumb, Layout, Menu, theme, Button, Form, DatePicker, InputNumber,
 const { Header, Content, Footer } = Layout;
 import { useNavigate } from 'react-router-dom';
 import logo from "../assets/logo.png";
+import { logout } from "../API/authaApi";
 const API_URL = import.meta.env.VITE_API_URL;
 
 const Home = () => {
@@ -114,6 +115,15 @@ const handleBookRide = async (rideId) => {
   }
 };
 
+const handleLogout = async () => {
+    try {
+        await logout();
+        navigate("/login");
+        } catch (err) {
+        console.log(err);
+        }
+    };
+
 const getDistanceInKm = (lat1, lon1, lat2, lon2) => {
     const toRad = (value) => (value * Math.PI) / 180;
 
@@ -151,18 +161,7 @@ const getDistanceInKm = (lat1, lon1, lat2, lon2) => {
         {
             key: "logout",
             label: "Logout",
-            onClick: async () => {
-            try {
-                await axios.post(
-                `${API_URL}/api/user/logout`,
-                {},
-                { withCredentials: true }
-                );
-                navigate("/login");
-            } catch (err) {
-                console.log("Logout error", err);
-            }
-            },
+            onClick: async () => {handleLogout()},
         },
     ];
 
@@ -256,7 +255,7 @@ const getDistanceInKm = (lat1, lon1, lat2, lon2) => {
                 <Button className='w-40 h-20' htmlType="submit">Search</Button>
             </Form>
 
-          <div className="mt-10 grid grid-cols-3 gap-6 w-full">
+          <div className="mt-10 flex flex-col gap-6 w-full justify-items-center">
             {rides && rides.length > 0 ? (
               rides.map((ride) => (
                 <Card
