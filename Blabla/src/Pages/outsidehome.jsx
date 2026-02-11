@@ -50,7 +50,7 @@ const Outsidehome = () => {
         <Sider style={siderStyle}>
             <div className="demo-logo-vertical" />
             <h1 className='text-3xl text-white font-bold p-4'>BlaBla</h1>
-            <Menu theme="dark" mode="inline" defaultSelectedKeys={['4']} items={items} />
+            <Menu theme="dark" mode="inline" defaultSelectedKeys={['1']} items={items} />
             <div className="flex flex-col justify-between w-50 p-5 gap-5 mt-45">
                     <Button
                     onClick={() => navigate("/login")}
@@ -70,13 +70,14 @@ const Outsidehome = () => {
                 style={{
                     display: 'flex',
                     flexDirection: 'column',
+                    justifyContent: 'center',
                     alignItems: 'center',
                 textAlign: 'center',
                 padding: '24px',
                 background: colorBgContainer,
                 borderRadius: borderRadiusLG,
                 height: '100vh',
-                backgroundImage: 'url(./background_image_blabla.jpg)',
+                backgroundImage: 'url(./background_image_blabla1.jpg)',
                 backgroundSize:'cover',
                 backgroundRepeat: 'no-repeat',
                 }}

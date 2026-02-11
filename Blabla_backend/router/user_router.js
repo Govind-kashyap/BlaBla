@@ -11,6 +11,7 @@ const {
     forgotPassword,
     resetPassword,
     AddRide,
+    updateRide,
     MyRides,
     deleteRide,
     searchRides,
@@ -19,17 +20,20 @@ const {
     myBookings,
     driverBookings,
     updateBookingStatus,
-    updateProfileImage
+    updateProfileImage,
+    updateProfile,
 } = require("../controller/user_controller");
 
 router.post("/login", login);
 router.post("/register", register);
 router.post("/upload-profile",isAuth,upload.single("profile"),updateProfileImage);
+router.put("/update-profile",isAuth,updateProfile);
 
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password/:token", resetPassword);
 
 router.post("/addRide", isAuth, AddRide);
+router.put("/ride/:id", isAuth, updateRide);
 router.get("/addRide", isAuth, AddRide);
 router.get("/my-rides", isAuth, MyRides);
 router.delete("/ride/:id", isAuth, deleteRide);

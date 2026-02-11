@@ -51,6 +51,10 @@ const schema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    available_seat: {
+      type: Number,
+      required: true,
+    },
 
     ride_status: {
       type: String,

@@ -178,6 +178,33 @@ const updateProfileImage = async (req, res) => {
   }
 };
 
+const updateProfile = async (req, res) => {
+  try {
+    const userId = req.session.user.id;
+    const {username, phoneNumber} = req.body;
+
+    const user = await User.findById(userId);
+    if(!user) {
+      return res.status(404).json({mesage: "User Not Found"});
+    }
+
+    user.username = username;
+    user.phoneNumber = phoneNumber;
+
+    await user.save();
+
+    res.json({
+      success: true,
+      user: {
+        username: user.username,
+        phoneNumber: user.phoneNumber,
+      }
+    })
+  } catch (err) {
+    console.log(err);
+  }
+}
+
 
 const AddRide = async (req, res) => {
   try {
@@ -189,6 +216,20 @@ const AddRide = async (req, res) => {
     }
 
     const { from, to, date, departure_time, price, total_seat } = req.body;
+
+    if(from.lattitude === to.lattitude && from.longitude === to.longitude){
+      return res.status(400).json({
+        seccess: false,
+        message: "From and To locations cannot be the same"
+      });
+    }
+
+    if(total_seat > 7) {
+      return res.status(400).json({
+        success: false,
+        message: "seats created cannot be more than 7"
+      })
+    }
 
     if (!from || !to || !date || !departure_time || !price || !total_seat) {
       return res.status(400).json({
@@ -213,8 +254,7 @@ const AddRide = async (req, res) => {
       user: req.session.user.id,
       from: from,
       to: to,
-      date: date,
-      departure_time: departure_time
+      date: date
     });
 
     if (existingRide) {
@@ -232,6 +272,7 @@ const AddRide = async (req, res) => {
       departure_time,
       price,
       total_seat,
+      available_seat: total_seat,
       user: req.session.user.id
     });
 
@@ -245,6 +286,96 @@ const AddRide = async (req, res) => {
 
   } catch (err) {
     console.log("AddRide error:", err);
+    res.status(500).json({
+      success: false,
+      message: "Server error"
+    });
+  }
+};
+
+// const updateRide = async (req, res) => {
+//   try {
+//     const rideId = req.params.id;
+//     const { from, to, date, departure_time, price, total_seat } = req.body;
+
+//     const ride = await Ride.findOne({
+//       _id: rideId,
+//       user: req.session.user.id
+//     });
+
+//     if (!ride) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Ride not found or not authorized"
+//       });
+//     }
+
+//     ride.from = from;
+//     ride.to = to;
+//     ride.date = date;
+//     ride.departure_time = departure_time;
+//     ride.price = price;
+//     ride.total_seat = total_seat;
+//     ride.available_seat = total_seat; 
+//     await ride.save();
+
+//     res.json({
+//       success: true,
+//       message: "Ride updated successfully",
+//       ride
+//     });
+
+//   } catch (err) {
+//     console.log("Update ride error:", err);
+//     res.status(500).json({
+//       success: false,
+//       message: "Server error"
+//     });
+//   }
+// }
+
+const updateRide = async (req, res) => {
+  try {
+    const rideId = req.params.id;
+
+    // 1️ Ride find karo
+    const ride = await Ride.findById(rideId);
+
+    if (!ride) {
+      return res.status(404).json({
+        success: false,
+        message: "Ride not found"
+      });
+    }
+
+    //  Check karo booking request hai ya nahi
+    const existingBooking = await BookingDetails.findOne({
+      ride: rideId,
+      status: { $in: ["pending", "approved"] }
+    });
+
+    if (existingBooking) {
+      return res.status(400).json({
+        success: false,
+        message: "Ride cannot be updated because booking requests exist"
+      });
+    }
+
+    // 3️ Update allowed
+    const updatedRide = await Ride.findByIdAndUpdate(
+      rideId,
+      req.body,
+      { new: true }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Ride updated successfully",
+      ride: updatedRide
+    });
+
+  } catch (err) {
+    console.log("Update Ride Error:", err);
     res.status(500).json({
       success: false,
       message: "Server error"
@@ -305,29 +436,29 @@ const deleteRide = async (req, res) => {
   }
 };
 
-const rideRequests = async (req, res) => {
-  try {
-    const rides = await Ride.find({ user: req.session.user.id });
+// const rideRequests = async (req, res) => {
+//   try {
+//     const rides = await Ride.find({ user: req.session.user.id });
 
-    const rideIds = rides.map(r => r._id);
+//     const rideIds = rides.map(r => r._id);
 
-    const requests = await BookingDetails.find({
-      ride: { $in: rideIds },
-      status: "pending"
-    }).populate("user", "username phoneNumber email")
-      .populate("ride");
+//     const requests = await BookingDetails.find({
+//       ride: { $in: rideIds },
+//       status: "pending"
+//     }).populate("user", "username phoneNumber email")
+//       .populate("ride");
 
-    res.json({ requests });
+//     res.json({ requests });
 
-  } catch (err) {
-    res.status(500).json({ message: "Failed to fetch requests" });
-  }
-};
+//   } catch (err) {
+//     res.status(500).json({ message: "Failed to fetch requests" });
+//   }
+// };
 
 
 const searchRides = async (req, res) => {
   try {
-    const { from, to, date } = req.query;
+    const { from, to, date, passengers } = req.query;
     const query = {};
 
     // From city
@@ -340,27 +471,39 @@ const searchRides = async (req, res) => {
       query["to.name"] = { $regex: to, $options: "i" };
     }
 
-    // Date filter 
+    // Date filter
     if (date) {
       const start = new Date(date);
       start.setHours(0, 0, 0, 0);
 
-      const end = new Date(date);
+      const end = new Date(date);0
       end.setHours(23, 59, 59, 999);
 
       query.date = { $gte: start, $lte: end };
     }
 
-    console.log("FINAL QUERY:", query);
+    // Seat availability
+    if (passengers) {
+      query.available_seat = { $gte: Number(passengers) };
+    }
 
-    const rides = await Ride.find(query).populate("user", "username email phoneNumber");
+    // DON'T SHOW OWN RIDES
+    query.user = { $ne: req.session.user.id };
+
+    console.log("FINAL QUERY ", query);
+
+    const rides = await Ride.find(query)
+      .populate("user", "username email phoneNumber");
 
     res.status(200).json({ rides });
+
   } catch (err) {
     console.error("Search error:", err);
     res.status(500).json({ message: "Search failed" });
   }
 };
+
+
 
 
 const getRideById = async (req, res) => {
@@ -381,7 +524,6 @@ const getRideById = async (req, res) => {
     });
   }
 };
-
 
 const bookRide = async (req, res) => {
   try {
@@ -413,10 +555,11 @@ const bookRide = async (req, res) => {
     });
 
   } catch (err) {
-    console.error("BOOK RIDE ERROR 👉", err);
+    console.error("BOOK RIDE ERROR ", err);
     res.status(500).json({ message: "Server error" });
   }
 };
+
 
 const updateBookingStatus = async (req, res) => {
   try {
@@ -483,6 +626,8 @@ const myBookings = async (req, res) => {
         }
       });
 
+      console.log("My Booking",bookings);
+
     res.json({ bookings });
   } catch (err) {
     console.log(err);
@@ -497,6 +642,7 @@ module.exports = {
     forgotPassword,
     resetPassword,
     AddRide,
+    updateRide,
     MyRides,
     deleteRide,
     searchRides,
@@ -505,5 +651,6 @@ module.exports = {
     myBookings,
     updateBookingStatus,
     driverBookings,
-    updateProfileImage
+    updateProfileImage,
+    updateProfile,
 };

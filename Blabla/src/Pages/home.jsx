@@ -85,7 +85,8 @@ const Home = () => {
         params: {
           from: fromCity,
           to: toCity,
-          date
+          date,
+          passengers: value || 1
         },
         withCredentials: true,
       }
@@ -194,7 +195,7 @@ const getDistanceInKm = (lat1, lon1, lat2, lon2) => {
             />
             </div>
         </Header>
-        <Content style={{ padding: '0 48px' }}>
+        <Content style={{ padding: '0 48px' }} className="h-[91vh]">
             <Breadcrumb
             style={{ margin: '16px 0' }}
             />
@@ -239,7 +240,11 @@ const getDistanceInKm = (lat1, lon1, lat2, lon2) => {
                     name="Date"
                     rules={[{ required: true, message: 'Date' }]}
                 >
-                    <DatePicker />
+                    <DatePicker 
+                      disabledDate={(current) => 
+                current && current < new Date().setHours(0, 0, 0, 0)
+                }
+                    />
                 </Form.Item>
 
                     <InputNumber
@@ -255,7 +260,7 @@ const getDistanceInKm = (lat1, lon1, lat2, lon2) => {
                 <Button className='w-40 h-20' htmlType="submit">Search</Button>
             </Form>
 
-          <div className="mt-10 flex flex-col gap-6 w-full justify-items-center">
+          <div className="mt-10 flex flex-col gap-6 w-full justify-items-center h-[70vh]">
             {rides && rides.length > 0 ? (
               rides.map((ride) => (
                 <Card

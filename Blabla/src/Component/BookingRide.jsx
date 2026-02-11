@@ -75,19 +75,96 @@ function BookingDetails() {
             </div>
         </Header>
             <Content className="h-[91vh] p-20">
-                <div className="p-6 grid grid-cols-2 gap-6">
-        {bookings.map((b) => (
-            <Card key={b._id} title={b.ride.from.name + " → " + b.ride.to.name}>
-            <p><b>Driver:</b> {b.ride.user.username}</p>
-            <p><b>Phone Number:</b> {b.ride.user.phoneNumber}</p>
-            <p><b>Price:</b> ₹{b.ride.price}</p>
-            <p><b>Status:</b> {b.status}</p>
-            <p className="text-gray-500 text-sm">
-                Booked on {new Date(b.createdAt).toLocaleDateString()}
-            </p>
-            </Card>
-        ))}
-        </div>
+            <div className="flex flex-col items-center gap-6 p-6">
+            {bookings.map((b) => (
+                <Card
+                key={b._id}
+                className="w-full max-w-4xl rounded-xl shadow-md hover:shadow-lg transition"
+                >
+                {b.ride ? (
+                    <>
+                    {/* TOP SECTION */}
+                    <div className="flex justify-between items-start w-full">
+                        <div className="w-full">
+                        <div className="flex items-center gap-3 text-lg font-semibold">
+                            <span>{b.ride.departure_time}</span>
+
+                            <div className="flex-1 flex items-center gap-2 text-gray-500 text-sm">
+                            <span className="w-2 h-2 border border-gray-400 rounded-full"></span>
+                            <span className="flex-1 border-t border-gray-400"></span>
+
+
+                            <span className="flex-1 border-t border-gray-400"></span>
+                            <span className="w-2 h-2 border border-gray-400 rounded-full"></span>
+                            </div>
+
+                            <span>{b.ride.departure_time}</span>
+                        </div>
+
+                        <div className="flex justify-between mt-1 text-sm font-medium">
+                            <span>{b.ride.from?.name}</span>
+                            <span>{b.ride.to?.name}</span>
+                        </div>
+                        </div>
+
+                        <div className="text-xl font-bold text-green-700">
+                        ₹{b.ride.price}
+                        </div>
+                    </div>
+
+                    <hr className="my-4" />
+
+                    {/* DRIVER + STATUS SECTION */}
+                    <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-sm font-bold">
+                            {b.ride.user?.username?.charAt(0)}
+                        </div>
+
+                        <div>
+                            <p className="font-semibold">
+                            {b.ride.user?.username}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                            {b.ride.user?.phoneNumber}
+                            </p>
+                        </div>
+                        </div>
+
+                        <div className="text-right">
+                        <p className="text-sm text-gray-500">
+                            Booked on {new Date(b.createdAt).toLocaleDateString()}
+                        </p>
+
+                        <p
+                            className={`mt-1 px-3 py-1 rounded-full text-sm font-semibold inline-block
+                            ${
+                            b.status === "approved"
+                                ? "bg-green-100 text-green-700"
+                                : b.status === "rejected"
+                                ? "bg-red-100 text-red-700"
+                                : "bg-yellow-100 text-yellow-700"
+                            }`}
+                        >
+                            {b.status.toUpperCase()}
+                        </p>
+                        </div>
+                    </div>
+                    </>
+                ) : (
+                    <div className="text-center py-6">
+                    <p className="text-red-500 font-semibold">
+                        This ride has been deleted by the driver.
+                    </p>
+                    <p className="text-sm text-gray-500">
+                        Booking Date: {new Date(b.createdAt).toLocaleDateString()}
+                    </p>
+                    </div>
+                )}
+                </Card>
+            ))}
+            </div>
+
             </Content>
         </Layout>
     );

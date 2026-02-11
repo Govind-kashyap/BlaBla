@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
+import dayjs from "dayjs";
+
 
 import {
     Button,
@@ -13,6 +15,7 @@ import {
     TimePicker,
     message,
     Card,
+    Modal,
     AutoComplete
 } from "antd";
 
@@ -50,6 +53,8 @@ const formItemLayout = {
         const [fromCity, setFromCity] = useState(null);
         const [toCity, setToCity] = useState(null);
         const [bookings, setBookings] = useState([]);
+        const [isModalOpen, setIsModalOpen] = useState(false);
+        const [editingRide, setEditingRide] = useState(null);
 
 
     const [rides, setRides] = useState([]);
@@ -242,6 +247,64 @@ const onFinish = async (values) => {
     }
     };
 
+const handleUpdateClick = (ride) => {
+    setEditingRide(ride);
+    setIsModalOpen(true);
+
+    form.setFieldsValue({
+        From: ride.from.name,
+        TO: ride.to.name,
+        Price: ride.price,
+        Total_Seats: ride.total_seat,
+        Date: dayjs(ride.date),
+        Departure_time: dayjs(ride.departure_time, "HH:mm")
+    });
+
+    setFromCity(ride.from);
+    setToCity(ride.to);
+};
+
+const handleUpdateSubmit = async () => {
+    try {
+        const values = form.getFieldsValue();
+
+        await axios.put(
+            `${API_URL}/api/user/ride/${editingRide._id}`,
+            {
+                from: {
+                    name: values.From,
+                    latitude: fromCity.latitude,
+                    longitude: fromCity.longitude,
+                },
+                to: {
+                    name: values.TO,
+                    latitude: toCity.latitude,
+                    longitude: toCity.longitude,
+                },
+                price: Number(values.Price),
+                total_seat: Number(values.Total_Seats),
+                date: values.Date.format("YYYY-MM-DD"),
+                departure_time: values.Departure_time.format("HH:mm"),
+            },
+            { withCredentials: true }
+        );
+
+        message.success("Ride updated successfully");
+
+        setIsModalOpen(false);
+        setEditingRide(null);
+        form.resetFields();
+        fetchRides();
+
+    } catch (err) {
+        if(err.response?.data?.message){
+            message.error(err.response.data.message);
+        } else {
+            message.error("Failed to update ride");
+        }
+    }
+};
+
 
 
 
@@ -375,104 +438,190 @@ const onFinish = async (values) => {
             </Form.Item>
             </Form>
 
-            <Card className="w-full">
-            <h2 className="text-xl font-bold mb-6 text-center">
-                My Created Rides
-            </h2>
+            <div className="flex flex-col items-center gap-6 w-full">
+            {rides.map((ride) => (
+                <Card
+                key={ride._id}
+                className="w-full max-w-4xl rounded-xl shadow-md hover:shadow-lg transition"
+                >
+                {/* TOP SECTION */}
+                <div className="flex justify-between items-start w-full">
+                    <div className="w-full">
+                    <div className="flex items-center gap-3 text-lg font-semibold">
+                        <span>{ride.departure_time}</span>
 
-            <div className="grid grid-cols-3 gap-x-6 gap-y-6 justify-items-center">
-                {rides.map((ride) => (
-                <div className="bg-[#8bcfe2] grid grid-cols-2 gap-x-4 gap-y-2 p-4 rounded-xl">
-                    <span className="font-semibold text-right">From:</span>
-                    <span>{ride.from.name}</span>
+                        <div className="flex-1 flex items-center gap-2 text-gray-500 text-sm">
+                        <span className="w-2 h-2 border border-gray-400 rounded-full"></span>
+                        <span className="flex-1 border-t border-gray-400"></span>
 
-                    <span className="font-semibold text-right">To:</span>
-                    <span>{ride.to.name}</span>
+                        <span>
+                            {getDistanceInKm(
+                            ride.from.latitude,
+                            ride.from.longitude,
+                            ride.to.latitude,
+                            ride.to.longitude
+                            ).toFixed(0)} km
+                        </span>
 
-                    <span className="font-semibold text-right">Distance:</span>
-                    <span>
-                        {getDistanceInKm(
-                        ride.from.latitude,
-                        ride.from.longitude,
-                        ride.to.latitude,
-                        ride.to.longitude
-                        ).toFixed(1)} km
-                    </span>
+                        <span className="flex-1 border-t border-gray-400"></span>
+                        <span className="w-2 h-2 border border-gray-400 rounded-full"></span>
+                        </div>
 
-                    <span className="font-semibold text-right">Date:</span>
-                    <span>{ride.date.slice(0, 10)}</span>
-
-                    <span className="font-semibold text-right">Time:</span>
-                    <span>{ride.departure_time}</span>
-
-                    <span className="font-semibold text-right">Price:</span>
-                    <span>₹{ride.price}</span>
-
-                    <span className="font-semibold text-right">Seats:</span>
-                    <span>{ride.total_seat}</span>
-
-                    <span className="font-semibold text-right">Status:</span>
-                    {/* <span>{ride.ride_status}</span> */}
-
-                    <div className="col-span-2 mt-3">
-                        <h3 className="font-bold mb-2">Booking Requests</h3>
-
-                        {bookings.filter(b => b.ride._id === ride._id).length === 0 ? (
-                            <p className="text-sm text-gray-600">No booking requests</p>
-                        ) : (
-                            bookings
-                            .filter(b => b.ride._id === ride._id)
-                            .map((booking) => (
-                                <div
-                                key={booking._id}
-                                className="bg-white p-3 rounded-lg mb-2"
-                                >
-                                <p><b>Passenger:</b> {booking.user.username}</p>
-                                <p><b>Phone:</b> {booking.user.phoneNumber}</p>
-                                <p>
-                                    <b>Status:</b>{" "}
-                                    <span className="font-semibold">
-                                    {booking.status}
-                                    </span>
-                                </p>
-
-                                {booking.status === "pending" && (
-                                    <div className="flex gap-3 mt-2">
-                                    <Button
-                                        type="primary"
-                                        onClick={() =>
-                                        updateBookingStatus(booking._id, "approved")
-                                        }
-                                    >
-                                        Accept
-                                    </Button>
-
-                                    <Button
-                                        danger
-                                        onClick={() =>
-                                        updateBookingStatus(booking._id, "rejected")
-                                        }
-                                    >
-                                        Reject
-                                    </Button>
-                                    </div>
-                                )}
-                                </div>
-                            ))
-                        )}
+                        <span>{ride.departure_time}</span>
                     </div>
 
-                    <Button 
-                    danger 
-                    className="mt-3 self-center" 
-                    onClick={() => handleDelete(ride._id)} 
-                    > 
-                    Delete Ride </Button>
+                    <div className="flex justify-between mt-1 text-sm font-medium">
+                        <span>{ride.from.name}</span>
+                        <span>{ride.to.name}</span>
+                    </div>
+                    </div>
+
+                    <div className="text-xl font-bold text-green-700">
+                    ₹{ride.price}
+                    </div>
                 </div>
 
-                ))}
+                <hr className="my-4" />
+
+                {/* DRIVER + ACTION SECTION */}
+                <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-sm font-bold">
+                        {ride.user?.username?.charAt(0)}
+                    </div>
+
+                    <div>
+                        <p className="font-semibold">
+                        {ride.user?.username}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                        {ride.total_seat} Seats • {ride.date.slice(0, 10)}
+                        </p>
+                    </div>
+                    </div>
+
+                    <div className="flex gap-3">
+                    <Button
+                        danger
+                        onClick={() => handleDelete(ride._id)}
+                    >
+                        Delete
+                    </Button>
+
+                    <Button
+                        type="primary"
+                        onClick={() => handleUpdateClick(ride)}
+                    >
+                        Update
+                    </Button>
+                    </div>
+                </div>
+
+                {/* BOOKING REQUEST SECTION */}
+                <div className="mt-6">
+                    <h3 className="font-bold mb-3">Booking Requests</h3>
+
+                    {bookings.filter(b => b.ride?._id === ride._id).length === 0 ? (
+                    <p className="text-sm text-gray-500">
+                        No booking requests yet
+                    </p>
+                    ) : (
+                    bookings
+                        .filter(b => b.ride?._id === ride._id)
+                        .map((booking) => (
+                        <div
+                            key={booking._id}
+                            className="bg-gray-50 p-3 rounded-lg mb-3 flex justify-between items-center"
+                        >
+                            <div>
+                            <p className="font-semibold">
+                                {booking.user.username}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                                {booking.user.phoneNumber}
+                            </p>
+                            <p className="text-sm">
+                                Status:{" "}
+                                <span className="font-semibold">
+                                {booking.status}
+                                </span>
+                            </p>
+                            </div>
+
+                            {booking.status === "pending" && (
+                            <div className="flex gap-2">
+                                <Button
+                                type="primary"
+                                onClick={() =>
+                                    updateBookingStatus(booking._id, "approved")
+                                }
+                                >
+                                Accept
+                                </Button>
+
+                                <Button
+                                danger
+                                onClick={() =>
+                                    updateBookingStatus(booking._id, "rejected")
+                                }
+                                >
+                                Reject
+                                </Button>
+                            </div>
+                            )}
+                        </div>
+                        ))
+                    )}
+                </div>
+                </Card>
+            ))}
             </div>
-            </Card>
+
+
+            <Modal
+                title="Update Ride"
+                open={isModalOpen}
+                onCancel={() => {
+                    setIsModalOpen(false);
+                    form.resetFields();
+                }}
+                onOk={handleUpdateSubmit}
+                okText="Update"
+            >
+                <Form
+                    {...formItemLayout}
+                    form={form}
+                >
+                    <Form.Item label="From" name="From">
+                        <Input disabled />
+                    </Form.Item>
+
+                    <Form.Item label="To" name="TO">
+                        <Input disabled />
+                    </Form.Item>
+
+                    <Form.Item label="Price" name="Price">
+                        <Input />
+                    </Form.Item>
+
+                    <Form.Item label="Seat" name="Total_Seats">
+                        <Input />
+                    </Form.Item>
+
+                    <Form.Item label="Date" name="Date">
+                            <DatePicker 
+                                disabledDate={(current) => 
+                            current && current < new Date().setHours(0, 0, 0, 0)
+                            }
+                            />
+                    </Form.Item>
+
+                    <Form.Item label="Time" name="Departure_time">
+                        <TimePicker format="HH:mm" />
+                    </Form.Item>
+                </Form>
+            </Modal>
+
         </Content>
         </Layout>
     );
