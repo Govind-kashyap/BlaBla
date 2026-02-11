@@ -53,58 +53,40 @@ function Userapp() {
       <Route path="/reset-password/:token" element={<ResetPassword />} />
 
       {/* PROTECTED ROUTES */}
-      <Route
-        path="/"
-        element={
-          <PrivateRoute>
-            <Outsidehome />
-          </PrivateRoute>
-        }
+      <Route path="/"element={
+        <PrivateRoute> 
+        <Outsidehome />
+        </PrivateRoute>}
       />
 
-      <Route
-        path="/home"
-        element={
+      <Route path="/home" element={
           <PrivateRoute>
             <Home />
-          </PrivateRoute>
-        }
+          </PrivateRoute>}
       />
 
-      <Route
-        path="/addRide"
-        element={
+      <Route path="/addRide" element={
           <PrivateRoute>
             <AddRide />
-          </PrivateRoute>
-        }
+          </PrivateRoute> }
       />
 
-      <Route
-        path="/ride/:id"
-        element={
+      <Route path="/ride/:id" element={
           <PrivateRoute>
             <ViewDetail />
-          </PrivateRoute>
-        }
+          </PrivateRoute> }
       />
 
-      <Route
-        path="/Myprofile"
-        element={
+      <Route path="/Myprofile" element={
           <PrivateRoute>
             <Myprofile />
-          </PrivateRoute>
-        }
+          </PrivateRoute> }
       />
 
-      <Route
-        path="/bookings"
-        element={
+      <Route path="/bookings" element={
           <PrivateRoute>
             <BookingRide />
-          </PrivateRoute>
-        }
+          </PrivateRoute> }
       />
 
       {/* FALLBACK */}

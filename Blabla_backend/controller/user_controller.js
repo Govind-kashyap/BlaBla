@@ -293,46 +293,6 @@ const AddRide = async (req, res) => {
   }
 };
 
-// const updateRide = async (req, res) => {
-//   try {
-//     const rideId = req.params.id;
-//     const { from, to, date, departure_time, price, total_seat } = req.body;
-
-//     const ride = await Ride.findOne({
-//       _id: rideId,
-//       user: req.session.user.id
-//     });
-
-//     if (!ride) {
-//       return res.status(404).json({
-//         success: false,
-//         message: "Ride not found or not authorized"
-//       });
-//     }
-
-//     ride.from = from;
-//     ride.to = to;
-//     ride.date = date;
-//     ride.departure_time = departure_time;
-//     ride.price = price;
-//     ride.total_seat = total_seat;
-//     ride.available_seat = total_seat; 
-//     await ride.save();
-
-//     res.json({
-//       success: true,
-//       message: "Ride updated successfully",
-//       ride
-//     });
-
-//   } catch (err) {
-//     console.log("Update ride error:", err);
-//     res.status(500).json({
-//       success: false,
-//       message: "Server error"
-//     });
-//   }
-// }
 
 const updateRide = async (req, res) => {
   try {
@@ -435,25 +395,6 @@ const deleteRide = async (req, res) => {
     });
   }
 };
-
-// const rideRequests = async (req, res) => {
-//   try {
-//     const rides = await Ride.find({ user: req.session.user.id });
-
-//     const rideIds = rides.map(r => r._id);
-
-//     const requests = await BookingDetails.find({
-//       ride: { $in: rideIds },
-//       status: "pending"
-//     }).populate("user", "username phoneNumber email")
-//       .populate("ride");
-
-//     res.json({ requests });
-
-//   } catch (err) {
-//     res.status(500).json({ message: "Failed to fetch requests" });
-//   }
-// };
 
 
 const searchRides = async (req, res) => {

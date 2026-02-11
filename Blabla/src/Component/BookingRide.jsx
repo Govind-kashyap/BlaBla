@@ -31,11 +31,6 @@ function BookingDetails() {
         }
     };
 
-
-    // if (!bookings.length) {
-    //     return <Empty description="No bookings yet" />;
-    // }
-
     const items = [
         {
             key: "logout",
