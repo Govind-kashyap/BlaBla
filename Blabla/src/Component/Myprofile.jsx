@@ -14,6 +14,8 @@ function Myprofile() {
     const [user, setUser] = useState(null);
     const [profileImage, setProfileImage] = useState(null);
     const [editOpen, setEditOpen] = useState(false);
+    const [rides, setRides] = useState([]);
+
 
     const [editUsername, setEditUsername] = useState("");
     const [editPhone, setEditPhone] = useState("");
@@ -43,7 +45,23 @@ function Myprofile() {
         };
 
         getProfile();
+        fetchMyRides();
     }, []);
+
+    const fetchMyRides = async () => {
+    try {
+        const res = await axios.get(
+        `${API_URL}/api/user/my-rides`,
+        { withCredentials: true }
+        );
+
+        setRides(res.data.rides);
+    } catch (err) {
+        console.log("Ride fetch error:", err);
+    }
+    };
+
+
 
     const handleImageUpload = async (e) => {
         try {
@@ -117,94 +135,199 @@ function Myprofile() {
         },
     ];
 
-    return (
-        <Layout className="min-h-screen">
-        {/* HEADER */}
-        <Header className="flex justify-between items-center sticky top-0 z-10">
-            <img src={logo} alt="Logo" className="h-30 w-32" />
+return (
+    <Layout className="min-h-screen">
 
-            <div className="flex items-center gap-4">
+        {/* HEADER */}
+        <Header className="flex justify-between items-center px-8 shadow-md">
+        <div className="flex items-center gap-4">
+            <img src={logo} alt="Logo" className="h-12" />
+            <h1 className="text-white text-lg font-semibold">
+            My Profile
+            </h1>
+        </div>
+
+        <div className="flex items-center gap-4">
             <Menu theme="dark" mode="horizontal" items={items} />
-            <Button onClick={() => navigate("/home")}>Back To Home</Button>
-            </div>
+            <Button type="primary" onClick={() => navigate("/home")}>
+            Home
+            </Button>
+        </div>
         </Header>
 
-        {/* CONTENT */}
-        <Content className="flex justify-center items-center bg-gray-100 h-[91vh]">
-            <Card className="w-full h-[50vh] max-w-md shadow-lg rounded-xl p-6">
-            <div className="flex flex-col items-center text-center gap-3">
 
-                {/* PROFILE IMAGE */}
-                <div className="relative">
+        {/* CONTENT */}
+        <Content className="flex flex-col justify-center items-center bg-gradient-to-br from-blue-50 to-gray-100 px-4 py-12">
+
+        <Card className="w-full max-w-md shadow-2xl rounded-3xl p-8 border border-gray-100">
+
+            <div className="flex flex-col items-center text-center gap-4">
+
+            {/* PROFILE IMAGE */}
+            <div className="relative group">
+
                 <Avatar
-                    size={96}
-                    src={profileImage}
-                    className="cursor-pointer bg-gray-300"
-                    onClick={() => fileInputRef.current.click()}
+                size={110}
+                src={profileImage}
+                className="cursor-pointer bg-gray-300 border-4 border-white shadow-lg"
+                onClick={() => fileInputRef.current.click()}
                 >
-                    {!profileImage && user?.username?.charAt(0)}
+                {!profileImage && user?.username?.charAt(0)?.toUpperCase()}
                 </Avatar>
 
                 <div
-                    onClick={() => fileInputRef.current.click()}
-                    className="absolute inset-0 rounded-full bg-black/40 
-                    opacity-0 hover:opacity-100 flex items-center 
-                    justify-center text-white text-sm cursor-pointer"
+                onClick={() => fileInputRef.current.click()}
+                className="absolute inset-0 rounded-full bg-black/50 
+                opacity-0 group-hover:opacity-100 transition duration-300
+                flex items-center justify-center text-white text-sm font-medium cursor-pointer"
                 >
-                    Change
+                Change Photo
                 </div>
-                </div>
+            </div>
 
-                <input
+            <input
                 type="file"
                 accept="image/*"
                 ref={fileInputRef}
                 className="hidden"
                 onChange={handleImageUpload}
-                />
+            />
 
-                {/* USER INFO */}
-                <h2 className="text-xl font-semibold">{user?.username}</h2>
-                <p className="text-gray-500">{user?.email}</p>
-                <span className="text-sm bg-blue-100 text-blue-600 px-3 py-1 rounded-full">
+            {/* USER INFO */}
+            <div className="mt-2">
+                <h2 className="text-2xl font-bold text-gray-800">
+                {user?.username}
+                </h2>
+
+                <p className="text-gray-500 mt-1">
+                {user?.email}
+                </p>
+
+                <div className="mt-3 inline-block bg-blue-100 text-blue-600 px-4 py-1 rounded-full text-sm font-medium">
                 {user?.phoneNumber}
-                </span>
-
-                {/* ACTIONS */}
-                <div className="flex gap-3 mt-4">
-                <Button type="primary" onClick={() => setEditOpen(true)}>
-                    Edit Profile
-                </Button>
-                <Button danger onClick={handleLogout}>
-                    Logout
-                </Button>
                 </div>
             </div>
+
+            {/* ACTIONS */}
+            <div className="flex gap-4 mt-6 w-full">
+                <Button
+                type="primary"
+                className="flex-1 h-11 rounded-xl font-semibold shadow-md"
+                onClick={() => setEditOpen(true)}
+                >
+                Edit Profile
+                </Button>
+
+                <Button
+                danger
+                className="flex-1 h-11 rounded-xl font-semibold"
+                onClick={handleLogout}
+                >
+                Logout
+                </Button>
+            </div>
+
+            </div>
+        </Card>
+
+        {/* ================= USER CREATED RIDES ================= */}
+    <div className="w-full max-w-5xl mt-12">
+
+    <h2 className="text-2xl font-bold mb-6 text-gray-800">
+        My Created Rides
+    </h2>
+
+    {rides.length === 0 ? (
+        <div className="text-gray-500 text-center py-10 bg-white rounded-xl shadow">
+        No rides created yet
+        </div>
+    ) : (
+        <div className="flex flex-col gap-6">
+
+        {rides.map((ride) => (
+            <Card
+            key={ride._id}
+            className="rounded-2xl shadow-md hover:shadow-lg transition border border-gray-100"
+            >
+            <div className="flex justify-between items-center">
+
+                {/* LEFT SIDE */}
+                <div>
+
+                <div className="flex items-center gap-4 text-lg font-semibold">
+                    <span>{ride.departure_time}</span>
+
+                    <div className="flex items-center gap-2 text-gray-400 text-sm">
+                    <span className="w-2 h-2 border border-gray-400 rounded-full"></span>
+                    <span className="w-16 border-t border-gray-400"></span>
+                    <span className="w-2 h-2 border border-gray-400 rounded-full"></span>
+                    </div>
+
+                    <span>{ride.departure_time}</span>
+                </div>
+
+                <div className="flex justify-between mt-2 text-sm font-medium text-gray-700">
+                    <span>{ride.from.name}</span>
+                    <span>{ride.to.name}</span>
+                </div>
+
+                <p className="text-xs text-gray-500 mt-1">
+                    {ride.total_seat} Seats • {ride.date.slice(0, 10)}
+                </p>
+
+                </div>
+
+                {/* PRICE */}
+                <div className="text-2xl font-bold text-blue-600">
+                ₹{ride.price}
+                </div>
+
+            </div>
             </Card>
+        ))}
+
+        </div>
+    )}
+    </div>
+
+
         </Content>
 
-        {/* ================= EDIT MODAL ================= */}
-        <Modal
-            title="Edit Profile"
-            open={editOpen}
-            onOk={handleUpdateProfile}
-            onCancel={() => setEditOpen(false)}
-            okText="Save"
-        >
-            <label>Username</label>
-            <Input
-            value={editUsername}
-            onChange={(e) => setEditUsername(e.target.value)}
-            />
 
-            <label className="mt-3 block">Phone Number</label>
+        {/* EDIT MODAL */}
+        <Modal
+        title="Edit Profile"
+        open={editOpen}
+        onOk={handleUpdateProfile}
+        onCancel={() => setEditOpen(false)}
+        okText="Save Changes"
+        >
+        <div className="flex flex-col gap-3">
+
+            <div>
+            <label className="font-medium">Username</label>
             <Input
-            value={editPhone}
-            onChange={(e) => setEditPhone(e.target.value)}
+                value={editUsername}
+                onChange={(e) => setEditUsername(e.target.value)}
             />
+            </div>
+
+            <div>
+            <label className="font-medium">Phone Number</label>
+            <Input
+                value={editPhone}
+                onChange={(e) => setEditPhone(e.target.value)}
+            />
+            </div>
+
+        </div>
         </Modal>
-        </Layout>
-    );
+
+        
+
+    </Layout>
+);
+
 }
 
 export default Myprofile;

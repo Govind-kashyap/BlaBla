@@ -305,9 +305,6 @@ const handleUpdateSubmit = async () => {
     }
 };
 
-
-
-
     const items = [
         {
         key: "profile",
@@ -330,25 +327,34 @@ const handleUpdateSubmit = async () => {
 
     return (
         <Layout>
-        <Header className="flex items-center justify-between">
-            <img src={logo} alt="BlaBla Logo" className="h-30 w-40 inline-block mr-2" />
-            <div className="flex ml-10 h-10 items-center">
+        <Header className="flex items-center justify-between px-8 shadow-md">
+            <div className="flex items-center gap-4">
+                <img src={logo} alt="BlaBla Logo" className="h-14" />
+                <h1 className="text-white text-xl font-semibold">
+                Manage Your Rides
+                </h1>
+            </div>
+
+            <div className="flex items-center gap-4">
                 <Menu theme="dark" mode="horizontal" items={items} />
-            <Button
-            onClick={() => navigate("/home")}
-            >
-            Back To Home
-            </Button>
+                <Button
+                type="primary"
+                onClick={() => navigate("/home")}
+                >
+                Home
+                </Button>
             </div>
         </Header>
 
-        <Content className="flex flex-col items-center p-10 gap-10">
 
-            <Form
+        <Content className="min-h-screen bg-gray-100 flex flex-col items-center p-10 gap-10">
+        
+            {/* <Form
             {...formItemLayout}
             form={form}
             onFinish={onFinish}
-            className="w-[30vw]"
+            className="w-full max-w-2xl bg-white p-8 rounded-2xl shadow-lg h-[70vh]"
+
             >
             <Form.Item
             label="From"
@@ -431,18 +437,129 @@ const handleUpdateSubmit = async () => {
                 />
             </Form.Item>
 
-            <Form.Item>
-                <Button type="primary" htmlType="submit">
-                Submit Ride
-                </Button>
+            <Form.Item className="w-full">
+                <div className="flex justify-end">
+                    <Button
+                    type="primary"
+                    htmlType="submit"
+                    className="px-8 h-10 rounded-lg"
+                    >
+                    Submit Ride
+                    </Button>
+                </div>
             </Form.Item>
+
+            </Form> */}
+
+            <Form
+                {...formItemLayout}
+                form={form}
+                onFinish={onFinish}
+                className="w-full max-w-2xl bg-white p-10 rounded-2xl shadow-xl border border-gray-100"
+                >
+                <h2 className="text-2xl font-semibold text-center mb-8">
+                    Create a New Ride
+                </h2>
+
+                <Form.Item
+                    label="From"
+                    name="From"
+                    rules={[{ required: true, message: "From location required" }]}
+                >
+                    <AutoComplete
+                    style={{ width: "100%" }}
+                    disabled={loadingCities}
+                    options={fromOptions}
+                    onSearch={handleFromSearch}
+                    onSelect={(value, option) => {
+                        setFromCity(option.cityObj);
+                    }}
+                    filterOption={false}
+                    getPopupContainer={(trigger) => trigger.parentElement}
+                    placeholder="Leaving from"
+                    />
+                </Form.Item>
+
+                <Form.Item
+                    label="To"
+                    name="TO"
+                    rules={[{ required: true, message: "To location required" }]}
+                >
+                    <AutoComplete
+                    style={{ width: "100%" }}
+                    disabled={loadingCities}
+                    options={toOptions}
+                    onSearch={handleToSearch}
+                    onSelect={(value, option) => {
+                        setToCity(option.cityObj);
+                    }}
+                    filterOption={false}
+                    getPopupContainer={(trigger) => trigger.parentElement}
+                    placeholder="Going to"
+                    />
+                </Form.Item>
+
+                <Form.Item
+                    label="Price"
+                    name="Price"
+                    rules={[{ required: true }]}
+                >
+                    <Input />
+                </Form.Item>
+
+                <Form.Item
+                    label="Seat"
+                    name="Total_Seats"
+                    rules={[{ required: true }]}
+                >
+                    <Input />
+                </Form.Item>
+
+                <Form.Item
+                    label="Date"
+                    name="Date"
+                    rules={[{ required: true }]}
+                >
+                    <DatePicker
+                    style={{ width: "100%" }}
+                    disabledDate={(current) =>
+                        current && current < new Date().setHours(0, 0, 0, 0)
+                    }
+                    />
+                </Form.Item>
+
+                <Form.Item
+                    label="Time"
+                    name="Departure_time"
+                    rules={[{ required: true }]}
+                >
+                    <TimePicker
+                    style={{ width: "100%" }}
+                    format="HH:mm"
+                    />
+                </Form.Item>
+
+                <Form.Item
+                    wrapperCol={{ offset: 6, span: 14 }}
+                    style={{ marginTop: "30px" }}
+                >
+                    <div className="flex justify-end">
+                    <Button
+                        type="primary"
+                        htmlType="submit"
+                        className="px-10 h-11 rounded-xl font-semibold shadow-md"
+                    >
+                        Submit Ride
+                    </Button>
+                    </div>
+                </Form.Item>
             </Form>
 
             <div className="flex flex-col items-center gap-6 w-full">
             {rides.map((ride) => (
                 <Card
                 key={ride._id}
-                className="w-full max-w-4xl rounded-xl shadow-md hover:shadow-lg transition"
+                className="w-full max-w-4xl rounded-2xl shadow-lg hover:shadow-xl transition duration-300 border border-gray-100"
                 >
                 {/* TOP SECTION */}
                 <div className="flex justify-between items-start w-full">
@@ -476,7 +593,7 @@ const handleUpdateSubmit = async () => {
                     </div>
                     </div>
 
-                    <div className="text-xl font-bold text-green-700">
+                    <div className="text-2xl font-bold text-blue-600">
                     ₹{ride.price}
                     </div>
                 </div>
@@ -486,8 +603,18 @@ const handleUpdateSubmit = async () => {
                 {/* DRIVER + ACTION SECTION */}
                 <div className="flex justify-between items-center">
                     <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-sm font-bold">
-                        {ride.user?.username?.charAt(0)}
+                    <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center bg-gray-300 text-sm font-bold">
+                        {ride.user?.profileImage ? (
+                            <img
+                            src={`${API_URL}${ride.user.profileImage}`}
+                            alt="Driver"
+                            className="w-full h-full object-cover"
+                            />
+                        ) : (
+                            <span>
+                            {ride.user?.username?.charAt(0)?.toUpperCase()}
+                            </span>
+                        )}
                     </div>
 
                     <div>

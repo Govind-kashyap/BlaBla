@@ -449,7 +449,7 @@ const searchRides = async (req, res) => {
 
 const getRideById = async (req, res) => {
   try {
-    const ride = await Ride.findById(req.params.id).populate("user", "username phoneNumber");
+    const ride = await Ride.findById(req.params.id).populate("user", "username phoneNumber profileImage");
 
     if (!ride) {
       return res.status(404).json({
@@ -466,14 +466,23 @@ const getRideById = async (req, res) => {
   }
 };
 
+
 const bookRide = async (req, res) => {
   try {
     if (!req.session.user) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const userId = req.session.user.id;
+    const userId = req.session.user.id; 
     const rideId = req.params.id;
+
+    const currentUser = await User.findById(userId);
+
+    const ride = await Ride.findById(rideId).populate("user"); 
+
+    if (!ride) {
+      return res.status(404).json({ message: "Ride not found" });
+    }
 
     const alreadyBooked = await BookingDetails.findOne({
       user: userId,
@@ -488,6 +497,30 @@ const bookRide = async (req, res) => {
       user: userId,
       ride: rideId,
       status: "pending"
+    });
+
+    const Driveremail = ride.user.email;
+
+    const transporter = nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 587,
+      secure: false,
+      auth: {
+        user: process.env.EMAIL,
+        pass: process.env.EMAIL_PASS,
+      },
+      tls: {
+        rejectUnauthorized: false,
+      },
+    });
+
+    await transporter.sendMail({
+      to: Driveremail, 
+      subject: "Booking Request",
+      html: `
+        <h3>Booking Request</h3>
+        <p>${currentUser.username} has booked your ride.</p>
+      `,
     });
 
     res.json({
